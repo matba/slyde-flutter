@@ -80,8 +80,7 @@ class LoginPage extends StatelessWidget {
                       obscureText: false,
                       style: new TextStyle(
                           fontSize: 12.0,
-                          height: 1.0,
-                          color: Colors.black
+                          height: 1.0
                       ),
                       decoration: InputDecoration(
                         enabledBorder: const OutlineInputBorder(
@@ -106,8 +105,7 @@ class LoginPage extends StatelessWidget {
                         child: TextField(
                           style: new TextStyle(
                               fontSize: 12.0,
-                              height: 1.0,
-                              color: Colors.black
+                              height: 1.0
                           ),
                           obscureText: true,
                           decoration: InputDecoration(
