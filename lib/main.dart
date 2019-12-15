@@ -48,7 +48,7 @@ class LoginPage extends StatelessWidget {
         child: Container(
       decoration: BoxDecoration(
         image: DecorationImage(
-            image: AssetImage('assets/memory-login.jpg'),
+            image: AssetImage('assets/memory-login.png'),
             fit: BoxFit.cover,
             alignment: Alignment(-1, 0)),
       ),
