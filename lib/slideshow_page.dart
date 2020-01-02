@@ -35,7 +35,7 @@ class _PhotoSlideShowState extends State<PhotoSlideShowWidget> {
               decoration: BoxDecoration(
                 image: DecorationImage(
                     image: user.slideShowImageAddress == null ? AssetImage(StyleConstants.loginBackground) : FileImage(new File(user.slideShowImageAddress)),
-                    fit: BoxFit.cover,
+                    fit: BoxFit.fitHeight,
                     alignment: Alignment(-1, 0)),
               ),
               child: Row(
