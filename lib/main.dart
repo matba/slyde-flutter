@@ -1,8 +1,18 @@
+import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:fourame/classes/user.dart';
+import 'package:fourame/landing_page.dart';
+import 'package:fourame/mode_selection.dart';
+import 'package:fourame/photo_manager.dart';
+import 'package:fourame/slideshow_page.dart';
 import 'login_screen.dart';
 import 'signup_page.dart';
 
-void main() => runApp(FourameApp());
+void main() => runApp(
+    ChangeNotifierProvider(
+      builder: (context) => User.getUser(),
+      child: FourameApp(),
+    ));
 
 class FourameApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -33,11 +43,15 @@ class FourameApp extends StatelessWidget {
             )
           )
         ),
-        initialRoute: LoginPage.routName,
+        initialRoute: LandingPage.routeName,
         routes: {
           // When navigating to the "/" route, build the FirstScreen widget.
-          LoginPage.routName: (context) => LoginPage(),
-          SignupPage.routName: (context) => SignupPage(),
+          LoginPage.routeName: (context) => LoginPage(),
+          SignupPage.routeName: (context) => SignupPage(),
+          ModeSelectionPage.routeName: (context) => ModeSelectionPage(),
+          LandingPage.routeName: (context) => LandingPage(),
+          PhotoManagerPage.routeName: (context) => PhotoManagerPage(),
+          SlideShowPage.routeName: (context) => SlideShowPage()
         });
   }
 }
