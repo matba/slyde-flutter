@@ -24,32 +24,26 @@ class _PhotoSlideShowState extends State<PhotoSlideShowWidget> {
   @override
   void initState() {
     super.initState();
-    User.getUser().populateImages().then((x) => User.getUser().startSlideShow());
+    User.getUser()
+        .populateImages()
+        .then((x) => User.getUser().startSlideShow());
   }
 
   @override
   Widget build(BuildContext context) {
     return Consumer<User>(builder: (context, user, child) {
-        return Material(
-            child: Container(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                    image: user.slideShowImageAddress == null ? AssetImage(StyleConstants.loginBackground) : FileImage(new File(user.slideShowImageAddress)),
-                    fit: BoxFit.fitHeight,
-                    alignment: Alignment(-1, 0)),
-              ),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Container(),
-                  ),
-                  Expanded(
-                    child: Container(),
-                  ),
-                ],
-              ),
-            ));
-      }
-    );
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body:
+            (user.imgIdx == 0 && user.image1 == null)
+                ? Center(
+                    child: Text(
+                    "Loading...",
+                    style: TextStyle(color: Colors.white, fontSize: 20),
+                  ))
+                : (user.imgIdx == 0 ? user.image1 : user.image2),
+
+        );
+    });
   }
 }

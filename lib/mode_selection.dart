@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/painting.dart';
+import 'package:fourame/login_screen.dart';
 import 'package:fourame/photo_manager.dart';
 import 'package:fourame/slideshow_page.dart';
 import 'constants.dart';
+import 'classes/user.dart';
 
 class ModeSelectionPage extends StatelessWidget {
   static const routeName = '/mode';
@@ -20,12 +22,7 @@ class ModeSelectionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
         child: Container(
-      decoration: BoxDecoration(
-        image: DecorationImage(
-            image: AssetImage(StyleConstants.loginBackground),
-            fit: BoxFit.cover,
-            alignment: Alignment(-1, 0)),
-      ),
+      color: Colors.pink,
       child: Row(
         children: <Widget>[
           Expanded(
@@ -48,7 +45,7 @@ class ModeSelectionWidget extends StatefulWidget {
 
 class _ModeSelectionState extends State<ModeSelectionWidget> {
   static final double inputWidth = 280;
-  static final double modeSelectionContainerSize = 130;
+  static final double modeSelectionContainerSize = 180;
 
   bool waitingForServer = false;
 
@@ -62,11 +59,16 @@ class _ModeSelectionState extends State<ModeSelectionWidget> {
     super.dispose();
   }
 
+  void logoutPressed(BuildContext context) {
+    User.createNewUserObject(context);
+    Navigator.pushReplacementNamed(
+        context, LoginPage.routeName);
+  }
+
   @override
   Widget build(BuildContext context) {
-
     return Container(
-      height:modeSelectionContainerSize,
+      height: modeSelectionContainerSize,
       decoration: BoxDecoration(
         color: Theme.of(context).backgroundColor,
         borderRadius: BorderRadius.all(Radius.circular(20)),
@@ -89,9 +91,9 @@ class _ModeSelectionState extends State<ModeSelectionWidget> {
                         onPressed: (waitingForServer
                             ? null
                             : () => {
-                          Navigator.pushNamed(
-                              context, PhotoManagerPage.routeName)
-                        }),
+                                  Navigator.pushNamed(
+                                      context, PhotoManagerPage.routeName)
+                                }),
                         child: new Text(StringConstants.photoManagement),
                       ))),
               Container(
@@ -107,10 +109,23 @@ class _ModeSelectionState extends State<ModeSelectionWidget> {
                         onPressed: (waitingForServer
                             ? null
                             : () => {
-                          Navigator.pushNamed(
-                              context, SlideShowPage.routeName)
-                        }),
+                                  Navigator.pushNamed(
+                                      context, SlideShowPage.routeName)
+                                }),
                         child: new Text(StringConstants.digitalPhotoFrame),
+                      ))),
+              Container(
+                  padding: EdgeInsets.symmetric(vertical: 0),
+                  child: SizedBox(
+                      width: inputWidth,
+                      child: RaisedButton(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: new BorderRadius.circular(18.0),
+                        ),
+                        textColor: Theme.of(context).accentColor,
+                        color: Theme.of(context).primaryColor,
+                        onPressed: () => this.logoutPressed(context),
+                        child: new Text(StringConstants.logout),
                       ))),
             ],
           )),

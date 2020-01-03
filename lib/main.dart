@@ -10,7 +10,7 @@ import 'signup_page.dart';
 
 void main() => runApp(
     ChangeNotifierProvider(
-      builder: (context) => User.getUser(),
+      builder: (context) => User.createNewUserObject(context),
       child: FourameApp(),
     ));
 

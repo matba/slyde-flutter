@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:async/async.dart';
@@ -11,44 +12,44 @@ import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tuple/tuple.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:image/image.dart' as imgLib;
 import 'package:fourame/constants.dart';
 
 class UserImage {
   String uuid;
   String name;
   String thumbnailAddress;
+  int width;
+  int height;
   String fileAddress;
   bool selected = false;
 
-  UserImage(String uuid, String name) {
+  UserImage(String uuid, String name, int width, int height) {
     this.uuid = uuid;
     this.name = name;
+    this.width = width;
+    this.height = height;
   }
 
-  Future<String> populateAddress(bool isThumbnail) async {
+  Future<String> populateThumbnailAddress() async {
     final docDirectory = await getApplicationDocumentsDirectory();
-    String directory = docDirectory.path;
-    if (isThumbnail) {
-      String thumbnailDirectory =
-          docDirectory.path + ServerConfiguration.thumbnailDirectory;
-      bool exists = await Directory(thumbnailDirectory).exists();
-      if (!exists) {
-        try {
-          await new Directory(thumbnailDirectory).create();
-        } catch (e) {
-          print(e);
-        }
+    String thumbnailDirectory =
+        docDirectory.path + ServerConfiguration.thumbnailDirectory;
+    bool exists = await Directory(thumbnailDirectory).exists();
+    if (!exists) {
+      try {
+        await new Directory(thumbnailDirectory).create();
+      } catch (e) {
+        print(e);
       }
-      exists = await Directory(thumbnailDirectory).exists();
-      if (!exists) {
-        print("Cannot create the thumbnails directory");
-        return "Cannot create the thumbnails directory.";
-      }
-      directory = thumbnailDirectory;
+    }
+    exists = await Directory(thumbnailDirectory).exists();
+    if (!exists) {
+      print("Cannot create the thumbnails directory");
+      return "Cannot create the thumbnails directory.";
     }
 
-    final String filePath = directory + "/" + uuid + ".jpg";
+    final String filePath = thumbnailDirectory + "/" + uuid + ".jpg";
 
     if (FileSystemEntity.typeSync(filePath) == FileSystemEntityType.notFound) {
       print("File does not exist. Downloading it. File: " + filePath);
@@ -59,10 +60,8 @@ class UserImage {
                 ServerConfiguration.server +
                 ServerConfiguration.imagesUrl +
                 ServerConfiguration.paramIndicator +
-                (isThumbnail
-                    ? ServerConfiguration.thumbnailIndicator +
-                        ServerConfiguration.paramSeparator
-                    : "") +
+                ServerConfiguration.thumbnailIndicator +
+                ServerConfiguration.paramSeparator +
                 ServerConfiguration.idIndicator +
                 uuid,
             headers: NetworkUtil.getHeader(User.getUser().sessionToken));
@@ -75,11 +74,7 @@ class UserImage {
       if (response.statusCode == 200) {
         File file = new File(filePath);
         file.writeAsBytesSync(response.bodyBytes);
-        if (isThumbnail) {
-          this.thumbnailAddress = filePath;
-        } else {
-          this.fileAddress = filePath;
-        }
+        this.thumbnailAddress = filePath;
         return null;
       } else {
         print("The call to get the image failed. error code :" +
@@ -88,11 +83,78 @@ class UserImage {
         return "The call to get the image failed.";
       }
     } else {
-      if (isThumbnail) {
-        this.thumbnailAddress = filePath;
-      } else {
-        this.fileAddress = filePath;
+      this.thumbnailAddress = filePath;
+      return null;
+    }
+  }
+
+  Future<String> populateAddress() async {
+    final docDirectory = await getApplicationDocumentsDirectory();
+    String directory = docDirectory.path;
+
+    final String filePath = directory + "/" + uuid + ".jpg";
+
+    if (FileSystemEntity.typeSync(filePath) == FileSystemEntityType.notFound) {
+      print("File does not exist. Downloading it. File: " + filePath);
+      http.Response response;
+      try {
+        response = await http.get(
+            ServerConfiguration.protocol +
+                ServerConfiguration.server +
+                ServerConfiguration.imagesUrl +
+                ServerConfiguration.paramIndicator +
+                ServerConfiguration.idIndicator +
+                uuid,
+            headers: NetworkUtil.getHeader(User.getUser().sessionToken));
+      } catch (e) {
+        print(e);
+        print("Something went wrong while getting image from server.");
+        return "Something went wrong while getting image from server.";
       }
+
+      if (response.statusCode == 200) {
+        try {
+          // We will resize image base on device screen dimension
+          imgLib.Image image = imgLib.decodeImage(response.bodyBytes);
+          int imageLength =
+              (image.width > image.height) ? image.width : image.height;
+          double screenLength =
+              (User.getUser().screenWidth > User.getUser().screenHeight)
+                  ? User.getUser().screenWidth
+                  : User.getUser().screenHeight;
+          print("Image:" +
+              name +
+              "Width: " +
+              image.width.toString() +
+              "Height:" +
+              image.height.toString());
+          print("Screen W: " +
+              User.getUser().screenWidth.toString() +
+              "Screen H: " +
+              User.getUser().screenHeight.toString());
+          // resize is required if the length of image is bigger than length of screen
+          if (imageLength > screenLength) {
+            double ratio = screenLength / imageLength;
+            print("Resizing to ratio " + ratio.toString());
+            int newWidth = (ratio * image.width).round();
+            image = imgLib.copyResize(image, width: newWidth);
+          }
+          (new File(filePath))
+              .writeAsBytesSync(imgLib.encodeJpg(image, quality: 80));
+          this.fileAddress = filePath;
+          return null;
+        } catch (e) {
+          print("Exception occurred while saving file." + e.toString());
+          return "Cannot save file locally";
+        }
+      } else {
+        print("The call to get the image failed. error code :" +
+            response.statusCode.toString() +
+            response.body);
+        return "The call to get the image failed.";
+      }
+    } else {
+      this.fileAddress = filePath;
       return null;
     }
   }
@@ -114,15 +176,17 @@ class User extends ChangeNotifier {
   bool isPopulated = false;
   List<UserImage> images;
   bool imageRetrievalFailed = false;
-  String slideShowImageAddress;
   int lastSlideChangeTime;
   bool slideShowRunning = false;
+  double screenWidth;
+  double screenHeight;
+  Image image1;
+  Image image2;
+  int imgIdx = 0;
+
   static User _singletonUser;
 
   static User getUser() {
-    if (_singletonUser == null) {
-      _singletonUser = User._();
-    }
     return _singletonUser;
   }
 
@@ -130,7 +194,18 @@ class User extends ChangeNotifier {
     populateUser();
   }
 
-  void populateUser() async {
+  static User createNewUserObject(BuildContext context) {
+    User newUser = User._();
+    _singletonUser = newUser;
+    return _singletonUser;
+  }
+
+  void setScreenDimensions(double screenWidth, double screenHeight) {
+    this.screenWidth = screenWidth;
+    this.screenHeight = screenHeight;
+  }
+
+  Future<Null> populateUser() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String tempToken = prefs.getString("SessionToken");
     if (tempToken == null) {
@@ -206,7 +281,7 @@ class User extends ChangeNotifier {
 
   void populateThumbnails() async {
     for (UserImage img in images) {
-      await img.populateAddress(true);
+      await img.populateThumbnailAddress();
     }
     notifyListeners();
   }
@@ -217,11 +292,16 @@ class User extends ChangeNotifier {
     }
     slideShowRunning = true;
     for (UserImage img in images) {
-      await img.populateAddress(false);
-      if (slideShowImageAddress == null ||
+      await img.populateAddress();
+      if (image1 == null ||
           DateTime.now().millisecondsSinceEpoch - lastSlideChangeTime > 60000) {
-        slideShowImageAddress = img.fileAddress;
-        print("Switching to " + slideShowImageAddress);
+        if (imgIdx == 1) {
+          image1 = makeImage(img.fileAddress);
+        } else {
+          image2 = makeImage(img.fileAddress);
+        }
+        imgIdx = (imgIdx + 1) % 2;
+        print("Switching to " + img.fileAddress);
         lastSlideChangeTime = DateTime.now().millisecondsSinceEpoch;
         notifyListeners();
       }
@@ -230,9 +310,24 @@ class User extends ChangeNotifier {
     new Timer(Duration(seconds: 20), () => this.handleSlideChange());
   }
 
+  Image makeImage(String path) {
+    return Image.file(new File(path),
+      fit: BoxFit.scaleDown,
+      height: double.infinity,
+      width: double.infinity,
+      alignment: Alignment.center);
+  }
+
   void handleSlideChange() {
-    slideShowImageAddress =
-        images[new Random(lastSlideChangeTime).nextInt(images.length - 1)].fileAddress;
+    String slideShowImageAddress =
+        images[new Random(lastSlideChangeTime).nextInt(images.length - 1)]
+            .fileAddress;
+    if (imgIdx == 1) {
+      image1 = makeImage(slideShowImageAddress);
+    } else {
+      image2 = makeImage(slideShowImageAddress);
+    }
+    imgIdx = (imgIdx + 1) % 2;
     print("Switching to " + slideShowImageAddress);
     lastSlideChangeTime = DateTime.now().millisecondsSinceEpoch;
     notifyListeners();
@@ -267,7 +362,8 @@ class User extends ChangeNotifier {
       if (decoded != null) {
         images = new List();
         for (Map im in (decoded['images'] as List)) {
-          final curImage = UserImage(im['id'], im['name']);
+          final curImage =
+              UserImage(im['id'], im['name'], im['width'], im['height']);
           images.add(curImage);
         }
       } else {
@@ -307,10 +403,11 @@ class User extends ChangeNotifier {
 
     if (response.statusCode == 200) {
       print("upload image was successful.");
-      UserImage newImage = UserImage(decoded['id'], decoded['name']);
+      UserImage newImage = UserImage(
+          decoded['id'], decoded['name'], decoded['width'], decoded['height']);
       images.add(newImage);
       notifyListeners();
-      newImage.populateAddress(true).then((err) => notifyListeners());
+      newImage.populateThumbnailAddress().then((err) => notifyListeners());
       return null;
     } else {
       print("The call to upload the image failed. error code :" +

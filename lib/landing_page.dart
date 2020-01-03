@@ -24,6 +24,11 @@ class LandingPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<User>(
       builder: (context, user, child) {
+        if (user.screenWidth == null) {
+          user.setScreenDimensions(
+              MediaQuery.of(context).size.width,
+              MediaQuery.of(context).size.height);
+        }
         if (user.isPopulated) {
           if (user.isSessionTokenValid) {
             return ModeSelectionPage();
@@ -53,7 +58,6 @@ class LandingPage extends StatelessWidget {
                 ],
               ),
             ));
-
       },
     );
   }

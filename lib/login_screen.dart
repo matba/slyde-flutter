@@ -25,12 +25,7 @@ class LoginPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
         child: Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-                image: AssetImage(StyleConstants.loginBackground),
-                fit: BoxFit.cover,
-                alignment: Alignment(-1, 0)),
-          ),
+          color: Colors.pink,
           child: Row(
             children: <Widget>[
               Expanded(
@@ -122,7 +117,8 @@ class _LoginWidgetState extends State<LoginWidget> {
 
       if (result.item2 == null) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString("SessionToken", result.item1);
+        await prefs.setString("SessionToken", result.item1);
+        await User.getUser().populateUser();
         Navigator.pushReplacementNamed(
             context, ModeSelectionPage.routeName);
       } else {

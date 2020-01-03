@@ -15,6 +15,7 @@ class StringConstants {
   static const verify = 'Verify';
   static const photoManagement = 'Photo Management';
   static const digitalPhotoFrame = 'Start Photo Frame';
+  static const logout = 'Log out';
 }
 
 class Constants {
