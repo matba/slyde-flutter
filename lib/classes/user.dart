@@ -142,6 +142,7 @@ class UserImage {
           (new File(filePath))
               .writeAsBytesSync(imgLib.encodeJpg(image, quality: 80));
           this.fileAddress = filePath;
+          print("Image was saved at " + filePath);
           return null;
         } catch (e) {
           print("Exception occurred while saving file." + e.toString());
@@ -291,23 +292,8 @@ class User extends ChangeNotifier {
       return;
     }
     slideShowRunning = true;
-    for (UserImage img in images) {
-      await img.populateAddress();
-      if (image1 == null ||
-          DateTime.now().millisecondsSinceEpoch - lastSlideChangeTime > 60000) {
-        if (imgIdx == 1) {
-          image1 = makeImage(img.fileAddress);
-        } else {
-          image2 = makeImage(img.fileAddress);
-        }
-        imgIdx = (imgIdx + 1) % 2;
-        print("Switching to " + img.fileAddress);
-        lastSlideChangeTime = DateTime.now().millisecondsSinceEpoch;
-        notifyListeners();
-      }
-    }
 
-    new Timer(Duration(seconds: 20), () => this.handleSlideChange());
+    new Timer(Duration(seconds: 3), () => this.handleSlideChange());
   }
 
   Image makeImage(String path) {
@@ -318,19 +304,22 @@ class User extends ChangeNotifier {
       alignment: Alignment.center);
   }
 
-  void handleSlideChange() {
-    String slideShowImageAddress =
-        images[new Random(lastSlideChangeTime).nextInt(images.length - 1)]
-            .fileAddress;
-    if (imgIdx == 1) {
-      image1 = makeImage(slideShowImageAddress);
+  void handleSlideChange() async {
+    UserImage imageToShow = images[new Random(lastSlideChangeTime).nextInt(images.length - 1)];
+    String error = await imageToShow.populateAddress();
+    if (error == null) {
+      if (imgIdx == 1) {
+        image1 = makeImage(imageToShow.fileAddress);
+      } else {
+        image2 = makeImage(imageToShow.fileAddress);
+      }
+      imgIdx = (imgIdx + 1) % 2;
+      print("Switching to " + imageToShow.fileAddress);
+      lastSlideChangeTime = DateTime.now().millisecondsSinceEpoch;
+      notifyListeners();
     } else {
-      image2 = makeImage(slideShowImageAddress);
+      print(error);
     }
-    imgIdx = (imgIdx + 1) % 2;
-    print("Switching to " + slideShowImageAddress);
-    lastSlideChangeTime = DateTime.now().millisecondsSinceEpoch;
-    notifyListeners();
     new Timer(Duration(seconds: 20), () => this.handleSlideChange());
   }
 
@@ -527,7 +516,7 @@ class User extends ChangeNotifier {
         return Tuple2(null, 'unable to login at this time.');
       }
       if (decoded != null && decoded['description'] != null) {
-        return decoded['description'];
+        return Tuple2(null,decoded['description']);
       } else {
         return Tuple2(null, 'unable to login at this time.');
       }
