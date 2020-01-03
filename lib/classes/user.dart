@@ -55,15 +55,17 @@ class UserImage {
       print("File does not exist. Downloading it. File: " + filePath);
       http.Response response;
       try {
+        String address = ServerConfiguration.protocol +
+            ServerConfiguration.server +
+            ServerConfiguration.imagesUrl +
+            ServerConfiguration.paramIndicator +
+            ServerConfiguration.thumbnailIndicator +
+            ServerConfiguration.paramSeparator +
+            ServerConfiguration.idIndicator +
+            uuid;
+        print("Making a request to " + address);
         response = await http.get(
-            ServerConfiguration.protocol +
-                ServerConfiguration.server +
-                ServerConfiguration.imagesUrl +
-                ServerConfiguration.paramIndicator +
-                ServerConfiguration.thumbnailIndicator +
-                ServerConfiguration.paramSeparator +
-                ServerConfiguration.idIndicator +
-                uuid,
+            address,
             headers: NetworkUtil.getHeader(User.getUser().sessionToken));
       } catch (e) {
         print(e);
@@ -96,6 +98,10 @@ class UserImage {
 
     if (FileSystemEntity.typeSync(filePath) == FileSystemEntityType.notFound) {
       print("File does not exist. Downloading it. File: " + filePath);
+      double screenLength =
+              (User.getUser().screenWidth > User.getUser().screenHeight)
+                  ? User.getUser().screenWidth
+                  : User.getUser().screenHeight;
       http.Response response;
       try {
         response = await http.get(
@@ -104,7 +110,11 @@ class UserImage {
                 ServerConfiguration.imagesUrl +
                 ServerConfiguration.paramIndicator +
                 ServerConfiguration.idIndicator +
-                uuid,
+                uuid +
+                ServerConfiguration.paramSeparator +
+                ServerConfiguration.widthIndicator +
+                screenLength.round().toString()
+            ,
             headers: NetworkUtil.getHeader(User.getUser().sessionToken));
       } catch (e) {
         print(e);
@@ -115,32 +125,32 @@ class UserImage {
       if (response.statusCode == 200) {
         try {
           // We will resize image base on device screen dimension
-          imgLib.Image image = imgLib.decodeImage(response.bodyBytes);
-          int imageLength =
-              (image.width > image.height) ? image.width : image.height;
-          double screenLength =
-              (User.getUser().screenWidth > User.getUser().screenHeight)
-                  ? User.getUser().screenWidth
-                  : User.getUser().screenHeight;
-          print("Image:" +
-              name +
-              "Width: " +
-              image.width.toString() +
-              "Height:" +
-              image.height.toString());
-          print("Screen W: " +
-              User.getUser().screenWidth.toString() +
-              "Screen H: " +
-              User.getUser().screenHeight.toString());
-          // resize is required if the length of image is bigger than length of screen
-          if (imageLength > screenLength) {
-            double ratio = screenLength / imageLength;
-            print("Resizing to ratio " + ratio.toString());
-            int newWidth = (ratio * image.width).round();
-            image = imgLib.copyResize(image, width: newWidth);
-          }
+//          imgLib.Image image = imgLib.decodeImage(response.bodyBytes);
+//          int imageLength =
+//              (image.width > image.height) ? image.width : image.height;
+//          double screenLength =
+//              (User.getUser().screenWidth > User.getUser().screenHeight)
+//                  ? User.getUser().screenWidth
+//                  : User.getUser().screenHeight;
+//          print("Image:" +
+//              name +
+//              "Width: " +
+//              image.width.toString() +
+//              "Height:" +
+//              image.height.toString());
+//          print("Screen W: " +
+//              User.getUser().screenWidth.toString() +
+//              "Screen H: " +
+//              User.getUser().screenHeight.toString());
+//          // resize is required if the length of image is bigger than length of screen
+//          if (imageLength > screenLength) {
+//            double ratio = screenLength / imageLength;
+//            print("Resizing to ratio " + ratio.toString());
+//            int newWidth = (ratio * image.width).round();
+//            image = imgLib.copyResize(image, width: newWidth);
+//          }
           (new File(filePath))
-              .writeAsBytesSync(imgLib.encodeJpg(image, quality: 80));
+              .writeAsBytesSync(response.bodyBytes);
           this.fileAddress = filePath;
           print("Image was saved at " + filePath);
           return null;

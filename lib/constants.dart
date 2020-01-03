@@ -33,7 +33,8 @@ class ServerConfiguration {
   static const imagesUrl = '/images';
   static const paramIndicator = '?';
   static const paramSeparator = '&';
-  static const thumbnailIndicator = 'thumnail=true';
+  static const thumbnailIndicator = 'thumbnail=true';
   static const idIndicator = 'id=';
+  static const widthIndicator = 'width=';
   static const thumbnailDirectory = '/.thumbnails';
 }
