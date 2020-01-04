@@ -59,7 +59,8 @@ class _ModeSelectionState extends State<ModeSelectionWidget> {
     super.dispose();
   }
 
-  void logoutPressed(BuildContext context) {
+  void logoutPressed(BuildContext context) async {
+    await User.getUser().signout();
     User.createNewUserObject(context);
     Navigator.pushReplacementNamed(
         context, LoginPage.routeName);

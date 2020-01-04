@@ -96,10 +96,11 @@ class _PhotosGridviewState extends State<PhotosGridviewWidget> {
     });
   }
 
-  List<Widget> generateImageList(List<UserImage> images) {
+  List<Widget> generateImageList(Map<String, UserImage> images) {
+    List<UserImage> imageList = List.from(images.values);
     List<Widget> result = new List(images.length);
-    for (var i = 0; i < images.length; i++) {
-      result[i] = createImageContainer(images[i]);
+    for (var i = 0; i < imageList.length; i++) {
+      result[i] = createImageContainer(imageList[i]);
     }
     return result;
   }

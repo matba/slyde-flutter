@@ -21,12 +21,19 @@ class StringConstants {
 class Constants {
   static final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
   static final sessionToken = RegExp(r'session_token=([^;]*);');
+  static const slideIntervalSec = 60;
+  // This every 10 times that image changed we check the server for new images
+  static const imagesUpdateInterval = 10;
+  // This means this many times image should change before we trigger we deletes
+  // unused images
+  static const cleanupInterval = 60;
 }
 
 class ServerConfiguration {
   static const server = '72.140.70.94:32888';
   static const protocol = 'http://';
   static const signupUrl = '/signup';
+  static const signoutUrl = '/signout';
   static const verifyUrl = '/verify';
   static const loginUrl = '/signin';
   static const userUrl = '/user';

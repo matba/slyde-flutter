@@ -1,7 +1,5 @@
-import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'constants.dart';
 import 'package:provider/provider.dart';
 
 import 'classes/user.dart';
@@ -24,9 +22,7 @@ class _PhotoSlideShowState extends State<PhotoSlideShowWidget> {
   @override
   void initState() {
     super.initState();
-    User.getUser()
-        .populateImages()
-        .then((x) => User.getUser().startSlideShow());
+    User.getUser().startSlideShow();
   }
 
   @override
@@ -38,7 +34,7 @@ class _PhotoSlideShowState extends State<PhotoSlideShowWidget> {
             (user.imgIdx == 0 && user.image1 == null)
                 ? Center(
                     child: Text(
-                    "Loading...",
+                      (user.images != null && user.images.length == 0) ? "No Image" : "Loading...",
                     style: TextStyle(color: Colors.white, fontSize: 20),
                   ))
                 : (user.imgIdx == 0 ? user.image1 : user.image2),
