@@ -23,7 +23,7 @@ class Constants {
   static final sessionToken = RegExp(r'session_token=([^;]*);');
   static const slideIntervalSec = 60;
   // This every 10 times that image changed we check the server for new images
-  static const imagesUpdateInterval = 10;
+  static const imagesUpdateInterval = 2;
   // This means this many times image should change before we trigger we deletes
   // unused images
   static const cleanupInterval = 60;

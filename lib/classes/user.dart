@@ -305,8 +305,8 @@ class User extends ChangeNotifier {
       } catch (e) {
         print("Exception while updating user images." + e.toString());
       }
-      updateCounter = (updateCounter + 1) % Constants.imagesUpdateInterval;
     }
+    updateCounter = (updateCounter + 1) % Constants.imagesUpdateInterval;
 
     List imagesList = List.from(images.values);
     if (imagesList.length != 0) {
@@ -343,8 +343,8 @@ class User extends ChangeNotifier {
       } catch (e) {
         print("Exception while updating user images." + e.toString());
       }
-      cleanupCounter = (cleanupCounter + 1) % Constants.cleanupInterval;
     }
+    cleanupCounter = (cleanupCounter + 1) % Constants.cleanupInterval;
 
     new Timer(Duration(seconds: Constants.slideIntervalSec),
         () => this.handleSlideChange());

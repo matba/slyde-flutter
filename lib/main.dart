@@ -43,6 +43,7 @@ class FourameApp extends StatelessWidget {
             )
           )
         ),
+        debugShowCheckedModeBanner: false,
         initialRoute: LandingPage.routeName,
         routes: {
           // When navigating to the "/" route, build the FirstScreen widget.
